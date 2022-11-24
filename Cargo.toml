@@ -1,0 +1,17 @@
+[package]
+name = "Celi_Renderer_V2"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+minifb = "0.23.0"
+
+[profile.release]
+debug-assertions = false
+debug = false
+overflow-checks = false
+strip = true
+lto = true
+panic = "abort"
