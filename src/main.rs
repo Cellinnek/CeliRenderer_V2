@@ -1,5 +1,6 @@
 use std::alloc::System;
 use std::f64::consts::PI;
+use std::time::{Duration, Instant};
 
 #[global_allocator]
 static A: System = System;
@@ -30,10 +31,6 @@ fn main() {
             [0.0,0.0,(-fFar * fNear) / (fFar - fNear),0.0]
         ]
     };
-
-    let matRotZ:mat4x4;
-    let matRotX:mat4x4;
-    let mut fTheta = 1.0;
 
     let meshCube = mesh {
         tris: vec![
@@ -77,16 +74,58 @@ fn main() {
     ).unwrap();
 
     window.set_position(500, 175);
+    /*window.limit_update_rate(Some(std::time::Duration::from_micros(16600)));*/
 
+    let mut start = Instant::now();
+    let mut duration = start.elapsed().as_secs_f64();
+
+    let mut fTheta:f64 = 100.0;
     while window.is_open() && !window.is_key_down(Escape) {
+        start = Instant::now();
+        let matRotZ:mat4x4;
+        let matRotX:mat4x4;
+        fTheta += duration;
+
+        // Rotation Z
+        matRotZ = mat4x4{
+            m: [
+                [fTheta.cos(),(fTheta).sin(),0.0,0.0],
+                [-(fTheta).sin(),(fTheta).cos(),0.0,0.0],
+                [0.0,0.0,1.0,0.0],
+                [0.0,0.0,0.0,1.0],
+            ]
+        };
+
+        // Rotation X
+        matRotX = mat4x4{
+          m: [
+              [1.0,0.0,0.0,0.0],
+              [0.0,(fTheta * 0.5).cos(),(fTheta * 0.5).sin(),0.0],
+              [0.0,-(fTheta * 0.5).sin(),(fTheta * 0.5).cos(),0.0],
+              [0.0,0.0,0.0,1.0],
+          ]
+        };
+
         for tri in &meshCube.tris{
             let mut triProjected = triangle(vec3d{ x: 0.0, y: 0.0, z: 0.0},vec3d{ x: 0.0, y: 0.0, z: 0.0},vec3d{ x: 0.0, y: 0.0, z: 0.0});
             let mut triTranslated:triangle;
+            let mut triRotatedZX:triangle;
+            let mut triRotatedZ:triangle;
+            triRotatedZ = triProjected.clone();
+            triRotatedZX = triProjected.clone();
 
-            triTranslated = tri.clone();
-            triTranslated.0.z = tri.0.z + 3.0;
-            triTranslated.1.z = tri.1.z + 3.0;
-            triTranslated.2.z = tri.2.z + 3.0;
+            MultiplyMatricVector(&tri.0, &mut triRotatedZ.0, &matRotZ);
+            MultiplyMatricVector(&tri.1, &mut triRotatedZ.1, &matRotZ);
+            MultiplyMatricVector(&tri.2, &mut triRotatedZ.2, &matRotZ);
+
+            MultiplyMatricVector(&triRotatedZ.0, &mut triRotatedZX.0, &matRotX);
+            MultiplyMatricVector(&triRotatedZ.1, &mut triRotatedZX.1, &matRotX);
+            MultiplyMatricVector(&triRotatedZ.2, &mut triRotatedZX.2, &matRotX);
+
+            triTranslated = triRotatedZX.clone();
+            triTranslated.0.z = triRotatedZX.0.z + 3.0;
+            triTranslated.1.z = triRotatedZX.1.z + 3.0;
+            triTranslated.2.z = triRotatedZX.2.z + 3.0;
 
             MultiplyMatricVector(&triTranslated.0, &mut triProjected.0, &matProj);
             MultiplyMatricVector(&triTranslated.1, &mut triProjected.1, &matProj);
@@ -110,5 +149,6 @@ fn main() {
         window.update_with_buffer(&buffer, WIDTH, HEIGHT).expect("Oops!");
         buffer.clear();
         buffer.resize(WIDTH*HEIGHT,0);
+        duration = start.elapsed().as_secs_f64();
     }
 }
