@@ -91,25 +91,6 @@ pub fn draw_triangle_edges(buffer: &mut [u32], [x1,y1]: [i32; 2], [x2,y2]: [i32;
     line(buffer, [x3,y3],[x1,y1], color);
 }
 
-pub fn rotate(arr: &mut [[f64;3]], r: &[[f64; 3]], fi: f64, axis: u8) {
-    let o = r[0];
-    match axis%3{
-        0 => for i in arr {
-            let (y,z) = (i[1]-o[1],i[2]-o[2]);
-            i[2] = z*fi.cos()-y*fi.sin()+o[2];
-            i[1] = z*fi.sin()+y*fi.cos()+o[1];},
-        1 => for i in arr {
-            let (x,z) = (i[0]-o[0],i[2]-o[2]);
-            i[0] = x*fi.cos()-z*fi.sin()+o[0];
-            i[2] = x*fi.sin()+z*fi.cos()+o[2];},
-        2 => for i in arr {
-            let (x,y) = (i[0]-o[0],i[1]-o[1]);
-            i[1] = y*fi.cos()-x*fi.sin()+o[1];
-            i[0] = y*fi.sin()+x*fi.cos()+o[0];},
-        _ => println!("Axis error!")
-    }
-}
-
 #[derive(Clone)]
 pub struct vec3d{
     pub x: f64,
@@ -118,21 +99,24 @@ pub struct vec3d{
 }
 
 #[derive(Clone)]
-pub struct triangle(pub vec3d,pub vec3d,pub vec3d);
+pub struct triangle {
+    pub a: vec3d,
+    pub b: vec3d,
+    pub c: vec3d,
+    pub col: u32,
+}
 
 pub struct mesh {
     pub tris: Vec<triangle>
 }
 
-pub struct mat4x4{
-    pub m: [[f64;4];4],
-}
+pub struct mat4x4(pub [[f64; 4]; 4]);
 
 pub fn MultiplyMatricVector(i: &vec3d, o: &mut vec3d, m: &mat4x4){
-    o.x = i.x * m.m[0][0] + i.y * m.m[1][0] + i.z * m.m[2][0] + m.m[3][0];
-    o.y = i.x * m.m[0][1] + i.y * m.m[1][1] + i.z * m.m[2][1] + m.m[3][1];
-    o.z = i.x * m.m[0][2] + i.y * m.m[1][2] + i.z * m.m[2][2] + m.m[3][2];
-    let w: f64 = i.x * m.m[0][3] + i.y * m.m[1][3] + i.z * m.m[2][3] + m.m[3][3];
+    o.x = i.x * m.0[0][0] + i.y * m.0[1][0] + i.z * m.0[2][0] + m.0[3][0];
+    o.y = i.x * m.0[0][1] + i.y * m.0[1][1] + i.z * m.0[2][1] + m.0[3][1];
+    o.z = i.x * m.0[0][2] + i.y * m.0[1][2] + i.z * m.0[2][2] + m.0[3][2];
+    let w: f64 = i.x * m.0[0][3] + i.y * m.0[1][3] + i.z * m.0[2][3] + m.0[3][3];
 
     if w != 0.0 {
         o.x /= w; o.y /= w; o.z /= w;
