@@ -77,14 +77,13 @@ fn main() {
     /*window.limit_update_rate(Some(std::time::Duration::from_micros(16600)));*/
 
     let mut start = Instant::now();
-    let mut duration = start.elapsed().as_secs_f64();
 
-    let mut fTheta:f64 = 100.0;
+    let mut matRotZ:mat4x4;
+    let mut matRotX:mat4x4;
+    let mut fTheta:f64 = 50.0;
+
     while window.is_open() && !window.is_key_down(Escape) {
-        start = Instant::now();
-        let matRotZ:mat4x4;
-        let matRotX:mat4x4;
-        fTheta += duration;
+        fTheta = start.elapsed().as_secs_f64();
 
         // Rotation Z
         matRotZ = mat4x4{
@@ -149,6 +148,5 @@ fn main() {
         window.update_with_buffer(&buffer, WIDTH, HEIGHT).expect("Oops!");
         buffer.clear();
         buffer.resize(WIDTH*HEIGHT,0);
-        duration = start.elapsed().as_secs_f64();
     }
 }
