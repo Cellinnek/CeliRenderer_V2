@@ -8,7 +8,7 @@ static A: System = System;
 
 extern crate core;
 
-use minifb::{Window, WindowOptions};
+use minifb::{Scale, Window, WindowOptions};
 use minifb::Key::{Escape};
 
 
@@ -33,7 +33,6 @@ fn main() {
 
     /*let mut mesh_cube = mesh {
         tris: vec![
-
             // SOUTH
             triangle {
                 a: vec3d { x: 0.0, y: 0.0, z: 0.0 },
@@ -108,7 +107,8 @@ fn main() {
         ],
     };*/
 
-    let mut mesh_cube: mesh = mesh{ tris: vec![] };
+    let mut mesh_cube = mesh{ tris: vec![] };
+
     mesh_cube.load_from_object_file("C:/Users/Cysie/CLionProjects/Renderer_V2/src/VideoShip.obj");
 
     let mut mat_rot_z:mat4x4;
@@ -155,17 +155,16 @@ fn main() {
             [0.0, 0.0, 0.0, 1.0],
         ]);
 
+        let mut vec_triangles_to_raster:Vec<triangle> = vec![];
+
         for tri in &mesh_cube.tris{
-            let mut tri_projected = triangle {
-                a: vec3d { x: 0.0, y: 0.0, z: 0.0 },
-                b: vec3d { x: 0.0, y: 0.0, z: 0.0 },
-                c: vec3d { x: 0.0, y: 0.0, z: 0.0 },
-            };
+            let mut tri_projected:triangle;
             let mut tri_translated:triangle;
             let mut tri_rotated_zx:triangle;
             let mut tri_rotated_z:triangle;
-            tri_rotated_z = tri_projected.clone();
-            tri_rotated_zx = tri_projected.clone();
+            tri_projected = tri.clone();
+            tri_rotated_z = tri.clone();
+            tri_rotated_zx = tri.clone();
 
             MultiplyMatricVector(&tri.a, &mut tri_rotated_z.a, &mat_rot_z);
             MultiplyMatricVector(&tri.b, &mut tri_rotated_z.b, &mat_rot_z);
@@ -176,9 +175,9 @@ fn main() {
             MultiplyMatricVector(&tri_rotated_z.c, &mut tri_rotated_zx.c, &mat_rot_x);
 
             tri_translated = tri_rotated_zx.clone();
-            tri_translated.a.z = tri_rotated_zx.a.z + 3.0;
-            tri_translated.b.z = tri_rotated_zx.b.z + 3.0;
-            tri_translated.c.z = tri_rotated_zx.c.z + 3.0;
+            tri_translated.a.z = tri_rotated_zx.a.z + 8.0;
+            tri_translated.b.z = tri_rotated_zx.b.z + 8.0;
+            tri_translated.c.z = tri_rotated_zx.c.z + 8.0;
 
             let line1 = vec3d{
                 x: tri_translated.b.x - tri_translated.a.x,
@@ -209,7 +208,7 @@ fn main() {
                 light_direction.x /= l; light_direction.y /= l; light_direction.z /= l;
 
                 let dp = normal.x * light_direction.x + normal.y * light_direction.y + normal.z * light_direction.z;
-                let col = (255.0*dp) as u32 * 0x10101;
+                tri_projected.col = (255.0*dp) as u32 * 0x10101;
 
                 MultiplyMatricVector(&tri_translated.a, &mut tri_projected.a, &mat_proj);
                 MultiplyMatricVector(&tri_translated.b, &mut tri_projected.b, &mat_proj);
@@ -229,12 +228,18 @@ fn main() {
                 tri_projected.c.x *= 0.5 * WIDTH as f64;
                 tri_projected.c.y *= 0.5 * HEIGHT as f64;
 
-                draw_triangle_faces(&mut buffer,
-                                    [tri_projected.a.x as i32, tri_projected.a.y as i32],
-                                    [tri_projected.b.x as i32, tri_projected.b.y as i32],
-                                    [tri_projected.c.x as i32, tri_projected.c.y as i32],
-                                    col)
+                vec_triangles_to_raster.push(tri_projected);
             }
+        }
+
+        vec_triangles_to_raster.sort_by(|x,y| (-(x.a.z+x.b.z+x.c.z)/3.0).partial_cmp(&(-(y.a.z+y.b.z+y.c.z)/3.0)).unwrap());
+
+        for tri in &vec_triangles_to_raster{
+            draw_triangle_faces(&mut buffer,
+                                [tri.a.x as i32, tri.a.y as i32],
+                                [tri.b.x as i32, tri.b.y as i32],
+                                [tri.c.x as i32, tri.c.y as i32],
+                                tri.col)
         }
 
         window.update_with_buffer(&buffer, WIDTH, HEIGHT).expect("Oops!");
