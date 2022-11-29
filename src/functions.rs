@@ -1,3 +1,5 @@
+use std::fs;
+
 use crate::WIDTH;
 use crate::HEIGHT;
 use std::mem::swap;
@@ -91,7 +93,7 @@ pub fn draw_triangle_edges(buffer: &mut [u32], [x1,y1]: [i32; 2], [x2,y2]: [i32;
     line(buffer, [x3,y3],[x1,y1], color);
 }
 
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub struct vec3d{
     pub x: f64,
     pub y: f64,
@@ -103,11 +105,44 @@ pub struct triangle {
     pub a: vec3d,
     pub b: vec3d,
     pub c: vec3d,
-    pub col: u32,
 }
+
 
 pub struct mesh {
     pub tris: Vec<triangle>
+}
+impl mesh {
+    pub fn load_from_object_file(&mut self, path: &str){
+        let file = fs::read_to_string(path).unwrap();
+        let split = file.split('\n');
+        let mut verts:Vec<vec3d> = vec![];
+
+        for s in split{
+            if s.split_whitespace().next().unwrap() == "v"{
+                verts.push(vec3d{
+                    x: s.split_whitespace().nth(1).unwrap().parse::<f64>().unwrap(),
+                    y: s.split_whitespace().nth(2).unwrap().parse::<f64>().unwrap(),
+                    z: s.split_whitespace().nth(3).unwrap().parse::<f64>().unwrap()-1.0
+                });
+            }
+
+            if s.split_whitespace().next().unwrap() == "f"{
+                let f = [
+                    s.split_whitespace().nth(1).unwrap().parse::<usize>().unwrap(),
+                    s.split_whitespace().nth(1).unwrap().parse::<usize>().unwrap(),
+                    s.split_whitespace().nth(1).unwrap().parse::<usize>().unwrap(),
+                    ];
+                self.tris.push(triangle {
+                    a: verts[f[0] - 1],
+                    b: verts[f[1] - 1],
+                    c: verts[f[2] - 1],
+                });
+            }
+
+
+        }
+
+    }
 }
 
 pub struct mat4x4(pub [[f64; 4]; 4]);
