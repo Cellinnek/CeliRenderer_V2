@@ -240,7 +240,7 @@ fn main() {
                                 [tri.a.x as i32, tri.a.y as i32],
                                 [tri.b.x as i32, tri.b.y as i32],
                                 [tri.c.x as i32, tri.c.y as i32],
-                                tri.col)
+                                tri.col);
         }
 
         window.update_with_buffer(&buffer, WIDTH, HEIGHT).expect("Oops!");
