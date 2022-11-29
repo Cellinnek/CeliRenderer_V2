@@ -109,7 +109,8 @@ fn main() {
 
     let mut mesh_cube = mesh{ tris: vec![] };
 
-    mesh_cube.load_from_object_file("C:/Users/Cysie/CLionProjects/Renderer_V2/src/VideoShip.obj");
+    /*mesh_cube.load_from_object_file("C:/Users/Cysie/CLionProjects/Renderer_V2/src/VideoShip.obj");*/
+    mesh_cube.load_from_object_file("C:/Users/Cysie/CLionProjects/Renderer_V2/src/untitled.obj");
 
     let mut mat_rot_z:mat4x4;
     let mut mat_rot_x:mat4x4;
@@ -175,9 +176,9 @@ fn main() {
             MultiplyMatricVector(&tri_rotated_z.c, &mut tri_rotated_zx.c, &mat_rot_x);
 
             tri_translated = tri_rotated_zx.clone();
-            tri_translated.a.z = tri_rotated_zx.a.z + 8.0;
-            tri_translated.b.z = tri_rotated_zx.b.z + 8.0;
-            tri_translated.c.z = tri_rotated_zx.c.z + 8.0;
+            tri_translated.a.z = tri_rotated_zx.a.z + 3.0;
+            tri_translated.b.z = tri_rotated_zx.b.z + 3.0;
+            tri_translated.c.z = tri_rotated_zx.c.z + 3.0;
 
             let line1 = vec3d{
                 x: tri_translated.b.x - tri_translated.a.x,
