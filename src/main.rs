@@ -12,8 +12,8 @@ use minifb::{Scale, Window, WindowOptions};
 use minifb::Key::{Escape};
 
 
-const WIDTH: usize = 512;
-const HEIGHT: usize = 512;
+const WIDTH: usize = 128;
+const HEIGHT: usize = 128;
 
 mod functions;
 use functions::*;
@@ -128,6 +128,7 @@ fn main() {
         WIDTH,
         HEIGHT,
         WindowOptions {
+            scale: Scale::X4,
             ..WindowOptions::default()
         },
     ).unwrap();
