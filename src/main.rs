@@ -12,8 +12,8 @@ use minifb::{Scale, Window, WindowOptions};
 use minifb::Key::{Escape};
 
 
-const WIDTH: usize = 128;
-const HEIGHT: usize = 128;
+const WIDTH: usize = 512;
+const HEIGHT: usize = 512;
 
 mod functions;
 use functions::*;
@@ -25,97 +25,97 @@ fn main() {
     let f_aspect_ratio: f64 = HEIGHT as f64/WIDTH as f64;
     let f_fov_rad = 1.0 / (f_fov * 0.5 / 180.0 * PI).tan();
 
-    let mat_proj = mat4x4([[f_aspect_ratio * f_fov_rad, 0.0, 0.0, 0.0],
+    let mat_proj = Mat4x4([[f_aspect_ratio * f_fov_rad, 0.0, 0.0, 0.0],
         [0.0, f_fov_rad, 0.0, 0.0],
         [0.0, 0.0, f_far / (f_far - f_near), 1.0],
         [0.0, 0.0, (-f_far * f_near) / (f_far - f_near), 0.0]
     ]);
 
-    /*let mut mesh_cube = mesh {
+    /*let mut mesh_cube = Mesh {
         tris: vec![
             // SOUTH
-            triangle {
-                a: vec3d { x: 0.0, y: 0.0, z: 0.0 },
-                b: vec3d { x: 0.0, y: 1.0, z: 0.0 },
-                c: vec3d { x: 1.0, y: 1.0, z: 0.0 },
+            Triangle {
+                a: Vec3d { x: 0.0, y: 0.0, z: 0.0 },
+                b: Vec3d { x: 0.0, y: 1.0, z: 0.0 },
+                c: Vec3d { x: 1.0, y: 1.0, z: 0.0 },
             },
-            triangle {
-                a: vec3d { x: 0.0, y: 0.0, z: 0.0 },
-                b: vec3d { x: 1.0, y: 1.0, z: 0.0 },
-                c: vec3d { x: 1.0, y: 0.0, z: 0.0 },
+            Triangle {
+                a: Vec3d { x: 0.0, y: 0.0, z: 0.0 },
+                b: Vec3d { x: 1.0, y: 1.0, z: 0.0 },
+                c: Vec3d { x: 1.0, y: 0.0, z: 0.0 },
             },
 
             // EAST
-            triangle {
-                a: vec3d { x: 1.0, y: 0.0, z: 0.0 },
-                b: vec3d { x: 1.0, y: 1.0, z: 0.0 },
-                c: vec3d { x: 1.0, y: 1.0, z: 1.0 },
+            Triangle {
+                a: Vec3d { x: 1.0, y: 0.0, z: 0.0 },
+                b: Vec3d { x: 1.0, y: 1.0, z: 0.0 },
+                c: Vec3d { x: 1.0, y: 1.0, z: 1.0 },
             },
-            triangle {
-                a: vec3d { x: 1.0, y: 0.0, z: 0.0 },
-                b: vec3d { x: 1.0, y: 1.0, z: 1.0 },
-                c: vec3d { x: 1.0, y: 0.0, z: 1.0 },
+            Triangle {
+                a: Vec3d { x: 1.0, y: 0.0, z: 0.0 },
+                b: Vec3d { x: 1.0, y: 1.0, z: 1.0 },
+                c: Vec3d { x: 1.0, y: 0.0, z: 1.0 },
             },
 
             //NORTH
-            triangle {
-                a: vec3d { x: 1.0, y: 0.0, z: 1.0 },
-                b: vec3d { x: 1.0, y: 1.0, z: 1.0 },
-                c: vec3d { x: 0.0, y: 1.0, z: 1.0 },
+            Triangle {
+                a: Vec3d { x: 1.0, y: 0.0, z: 1.0 },
+                b: Vec3d { x: 1.0, y: 1.0, z: 1.0 },
+                c: Vec3d { x: 0.0, y: 1.0, z: 1.0 },
             },
-            triangle {
-                a: vec3d { x: 1.0, y: 0.0, z: 1.0 },
-                b: vec3d { x: 0.0, y: 1.0, z: 1.0 },
-                c: vec3d { x: 0.0, y: 0.0, z: 1.0 },
+            Triangle {
+                a: Vec3d { x: 1.0, y: 0.0, z: 1.0 },
+                b: Vec3d { x: 0.0, y: 1.0, z: 1.0 },
+                c: Vec3d { x: 0.0, y: 0.0, z: 1.0 },
             },
 
             // WEST
-            triangle {
-                a: vec3d { x: 0.0, y: 0.0, z: 1.0 },
-                b: vec3d { x: 0.0, y: 1.0, z: 1.0 },
-                c: vec3d { x: 0.0, y: 1.0, z: 0.0 },
+            Triangle {
+                a: Vec3d { x: 0.0, y: 0.0, z: 1.0 },
+                b: Vec3d { x: 0.0, y: 1.0, z: 1.0 },
+                c: Vec3d { x: 0.0, y: 1.0, z: 0.0 },
             },
-            triangle {
-                a: vec3d { x: 0.0, y: 0.0, z: 1.0 },
-                b: vec3d { x: 0.0, y: 1.0, z: 0.0 },
-                c: vec3d { x: 0.0, y: 0.0, z: 0.0 },
+            Triangle {
+                a: Vec3d { x: 0.0, y: 0.0, z: 1.0 },
+                b: Vec3d { x: 0.0, y: 1.0, z: 0.0 },
+                c: Vec3d { x: 0.0, y: 0.0, z: 0.0 },
             },
 
             // TOP
-            triangle {
-                a: vec3d { x: 0.0, y: 1.0, z: 0.0 },
-                b: vec3d { x: 0.0, y: 1.0, z: 1.0 },
-                c: vec3d { x: 1.0, y: 1.0, z: 1.0 },
+            Triangle {
+                a: Vec3d { x: 0.0, y: 1.0, z: 0.0 },
+                b: Vec3d { x: 0.0, y: 1.0, z: 1.0 },
+                c: Vec3d { x: 1.0, y: 1.0, z: 1.0 },
             },
-            triangle {
-                a: vec3d { x: 0.0, y: 1.0, z: 0.0 },
-                b: vec3d { x: 1.0, y: 1.0, z: 1.0 },
-                c: vec3d { x: 1.0, y: 1.0, z: 0.0 },
+            Triangle {
+                a: Vec3d { x: 0.0, y: 1.0, z: 0.0 },
+                b: Vec3d { x: 1.0, y: 1.0, z: 1.0 },
+                c: Vec3d { x: 1.0, y: 1.0, z: 0.0 },
             },
 
             // BOTTOM
-            triangle {
-                a: vec3d { x: 1.0, y: 0.0, z: 1.0 },
-                b: vec3d { x: 0.0, y: 0.0, z: 1.0 },
-                c: vec3d { x: 0.0, y: 0.0, z: 0.0 },
+            Triangle {
+                a: Vec3d { x: 1.0, y: 0.0, z: 1.0 },
+                b: Vec3d { x: 0.0, y: 0.0, z: 1.0 },
+                c: Vec3d { x: 0.0, y: 0.0, z: 0.0 },
             },
-            triangle {
-                a: vec3d { x: 1.0, y: 0.0, z: 1.0 },
-                b: vec3d { x: 0.0, y: 0.0, z: 0.0 },
-                c: vec3d { x: 1.0, y: 0.0, z: 0.0 },
+            Triangle {
+                a: Vec3d { x: 1.0, y: 0.0, z: 1.0 },
+                b: Vec3d { x: 0.0, y: 0.0, z: 0.0 },
+                c: Vec3d { x: 1.0, y: 0.0, z: 0.0 },
             },
         ],
     };*/
 
-    let mut mesh_cube = mesh{ tris: vec![] };
+    let mut mesh_cube = Mesh { tris: vec![] };
 
-    /*mesh_cube.load_from_object_file("C:/Users/Cysie/CLionProjects/Renderer_V2/src/VideoShip.obj");*/
-    mesh_cube.load_from_object_file("C:/Users/Cysie/CLionProjects/Renderer_V2/src/untitled.obj");
+    mesh_cube.load_from_object_file("C:/Users/Cysie/CLionProjects/Renderer_V2/src/VideoShip.obj");
+    /*mesh_cube.load_from_object_file("C:/Users/Cysie/CLionProjects/Renderer_V2/src/untitled.obj");*/
 
-    let mut mat_rot_z:mat4x4;
-    let mut mat_rot_x:mat4x4;
+    let mut mat_rot_z: Mat4x4;
+    let mut mat_rot_x: Mat4x4;
     let mut f_theta:f64;
-    let v_camera = vec3d{
+    let v_camera = Vec3d {
         x: 0.0,
         y: 0.0,
         z: 0.0
@@ -128,7 +128,6 @@ fn main() {
         WIDTH,
         HEIGHT,
         WindowOptions {
-            scale: Scale::X4,
             ..WindowOptions::default()
         },
     ).unwrap();
@@ -142,7 +141,7 @@ fn main() {
         f_theta = start.elapsed().as_secs_f64();
 
         // Rotation Z
-        mat_rot_z = mat4x4([
+        mat_rot_z = Mat4x4([
             [f_theta.cos(), (f_theta).sin(), 0.0, 0.0],
             [-(f_theta).sin(), (f_theta).cos(), 0.0, 0.0],
             [0.0, 0.0, 1.0, 0.0],
@@ -150,50 +149,50 @@ fn main() {
         ]);
 
         // Rotation X
-        mat_rot_x = mat4x4([
+        mat_rot_x = Mat4x4([
             [1.0, 0.0, 0.0, 0.0],
             [0.0, (f_theta * 0.5).cos(), (f_theta * 0.5).sin(), 0.0],
             [0.0, -(f_theta * 0.5).sin(), (f_theta * 0.5).cos(), 0.0],
             [0.0, 0.0, 0.0, 1.0],
         ]);
 
-        let mut vec_triangles_to_raster:Vec<triangle> = vec![];
+        let mut vec_triangles_to_raster:Vec<Triangle> = vec![];
 
         for tri in &mesh_cube.tris{
-            let mut tri_projected:triangle;
-            let mut tri_translated:triangle;
-            let mut tri_rotated_zx:triangle;
-            let mut tri_rotated_z:triangle;
-            tri_projected = tri.clone();
-            tri_rotated_z = tri.clone();
-            tri_rotated_zx = tri.clone();
+            let mut tri_projected: Triangle;
+            let mut tri_translated: Triangle;
+            let mut tri_rotated_zx: Triangle;
+            let mut tri_rotated_z: Triangle;
+            tri_projected = *tri;
+            tri_rotated_z = *tri;
+            tri_rotated_zx = *tri;
 
-            MultiplyMatricVector(&tri.a, &mut tri_rotated_z.a, &mat_rot_z);
-            MultiplyMatricVector(&tri.b, &mut tri_rotated_z.b, &mat_rot_z);
-            MultiplyMatricVector(&tri.c, &mut tri_rotated_z.c, &mat_rot_z);
+            multiply_matric_vector(&tri.a, &mut tri_rotated_z.a, &mat_rot_z);
+            multiply_matric_vector(&tri.b, &mut tri_rotated_z.b, &mat_rot_z);
+            multiply_matric_vector(&tri.c, &mut tri_rotated_z.c, &mat_rot_z);
 
-            MultiplyMatricVector(&tri_rotated_z.a, &mut tri_rotated_zx.a, &mat_rot_x);
-            MultiplyMatricVector(&tri_rotated_z.b, &mut tri_rotated_zx.b, &mat_rot_x);
-            MultiplyMatricVector(&tri_rotated_z.c, &mut tri_rotated_zx.c, &mat_rot_x);
+            multiply_matric_vector(&tri_rotated_z.a, &mut tri_rotated_zx.a, &mat_rot_x);
+            multiply_matric_vector(&tri_rotated_z.b, &mut tri_rotated_zx.b, &mat_rot_x);
+            multiply_matric_vector(&tri_rotated_z.c, &mut tri_rotated_zx.c, &mat_rot_x);
 
-            tri_translated = tri_rotated_zx.clone();
-            tri_translated.a.z = tri_rotated_zx.a.z + 3.0;
-            tri_translated.b.z = tri_rotated_zx.b.z + 3.0;
-            tri_translated.c.z = tri_rotated_zx.c.z + 3.0;
+            tri_translated = tri_rotated_zx;
+            tri_translated.a.z = tri_rotated_zx.a.z + 8.0;
+            tri_translated.b.z = tri_rotated_zx.b.z + 8.0;
+            tri_translated.c.z = tri_rotated_zx.c.z + 8.0;
 
-            let line1 = vec3d{
+            let line1 = Vec3d {
                 x: tri_translated.b.x - tri_translated.a.x,
                 y: tri_translated.b.y - tri_translated.a.y,
                 z: tri_translated.b.z - tri_translated.a.z
             };
 
-            let line2 = vec3d{
+            let line2 = Vec3d {
                 x: tri_translated.c.x - tri_translated.a.x,
                 y: tri_translated.c.y - tri_translated.a.y,
                 z: tri_translated.c.z - tri_translated.a.z
             };
 
-            let mut normal = vec3d{
+            let mut normal = Vec3d {
                 x: line1.y * line2.z - line1.z * line2.y,
                 y: line1.z * line2.x - line1.x * line2.z,
                 z: line1.x * line2.y - line1.y * line2.x
@@ -205,16 +204,16 @@ fn main() {
             if (normal.x * (tri_translated.a.x - v_camera.x) +
                 normal.y * (tri_translated.a.y - v_camera.y) +
                 normal.z * (tri_translated.a.z - v_camera.z)) < 0.0 {
-                let mut light_direction = vec3d{ x: 0.0, y: 0.0, z: -1.0 };
+                let mut light_direction = Vec3d { x: 0.0, y: 0.0, z: -1.0 };
                 let l = (light_direction.x*light_direction.x + light_direction.y*light_direction.y + light_direction.z*light_direction.z).sqrt();
                 light_direction.x /= l; light_direction.y /= l; light_direction.z /= l;
 
                 let dp = normal.x * light_direction.x + normal.y * light_direction.y + normal.z * light_direction.z;
                 tri_projected.col = (255.0*dp) as u32 * 0x10101;
 
-                MultiplyMatricVector(&tri_translated.a, &mut tri_projected.a, &mat_proj);
-                MultiplyMatricVector(&tri_translated.b, &mut tri_projected.b, &mat_proj);
-                MultiplyMatricVector(&tri_translated.c, &mut tri_projected.c, &mat_proj);
+                multiply_matric_vector(&tri_translated.a, &mut tri_projected.a, &mat_proj);
+                multiply_matric_vector(&tri_translated.b, &mut tri_projected.b, &mat_proj);
+                multiply_matric_vector(&tri_translated.c, &mut tri_projected.c, &mat_proj);
 
                 tri_projected.a.x += 1.0;
                 tri_projected.a.y += 1.0;

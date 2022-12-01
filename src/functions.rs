@@ -94,33 +94,33 @@ pub fn draw_triangle_edges(buffer: &mut [u32], [x1,y1]: [i32; 2], [x2,y2]: [i32;
 }
 
 #[derive(Clone,Copy)]
-pub struct vec3d{
+pub struct Vec3d {
     pub x: f64,
     pub y: f64,
     pub z: f64
 }
 
 #[derive(Clone,Copy)]
-pub struct triangle {
-    pub a: vec3d,
-    pub b: vec3d,
-    pub c: vec3d,
+pub struct Triangle {
+    pub a: Vec3d,
+    pub b: Vec3d,
+    pub c: Vec3d,
     pub col: u32,
 }
 
 
-pub struct mesh {
-    pub tris: Vec<triangle>
+pub struct Mesh {
+    pub tris: Vec<Triangle>
 }
-impl mesh {
+impl Mesh {
     pub fn load_from_object_file(&mut self, path: &str){
         let file = fs::read_to_string(path).unwrap();
         let split = file.split('\n');
-        let mut verts:Vec<vec3d> = vec![];
+        let mut verts:Vec<Vec3d> = vec![];
 
         for s in split{
             if s.split_whitespace().next().unwrap() == "v"{
-                verts.push(vec3d{
+                verts.push(Vec3d {
                     x: s.split_whitespace().nth(1).unwrap().parse::<f64>().unwrap(),
                     y: s.split_whitespace().nth(2).unwrap().parse::<f64>().unwrap(),
                     z: s.split_whitespace().nth(3).unwrap().parse::<f64>().unwrap(),
@@ -133,7 +133,7 @@ impl mesh {
                     s.split_whitespace().nth(2).unwrap().parse::<usize>().unwrap(),
                     s.split_whitespace().nth(3).unwrap().parse::<usize>().unwrap(),
                     ];
-                self.tris.push(triangle {
+                self.tris.push(Triangle {
                     a: verts[f[0] - 1],
                     b: verts[f[1] - 1],
                     c: verts[f[2] - 1],
@@ -144,9 +144,9 @@ impl mesh {
     }
 }
 
-pub struct mat4x4(pub [[f64; 4]; 4]);
+pub struct Mat4x4(pub [[f64; 4]; 4]);
 
-pub fn MultiplyMatricVector(i: &vec3d, o: &mut vec3d, m: &mat4x4){
+pub fn multiply_matric_vector(i: &Vec3d, o: &mut Vec3d, m: &Mat4x4){
     o.x = i.x * m.0[0][0] + i.y * m.0[1][0] + i.z * m.0[2][0] + m.0[3][0];
     o.y = i.x * m.0[0][1] + i.y * m.0[1][1] + i.z * m.0[2][1] + m.0[3][1];
     o.z = i.x * m.0[0][2] + i.y * m.0[1][2] + i.z * m.0[2][2] + m.0[3][2];
