@@ -3,6 +3,7 @@ use std::fs;
 use crate::WIDTH;
 use crate::HEIGHT;
 use std::mem::swap;
+use std::f64::consts::PI;
 
 pub fn line(buffer: &mut [u32], [argx1,argy1]: [i32; 2], [argx2,argy2]: [i32; 2], color: u32) {
     let mut x = argx1;
@@ -97,7 +98,8 @@ pub fn draw_triangle_edges(buffer: &mut [u32], [x1,y1]: [i32; 2], [x2,y2]: [i32;
 pub struct Vec3d {
     pub x: f64,
     pub y: f64,
-    pub z: f64
+    pub z: f64,
+    pub w: f64
 }
 
 #[derive(Clone,Copy)]
@@ -124,6 +126,7 @@ impl Mesh {
                     x: s.split_whitespace().nth(1).unwrap().parse::<f64>().unwrap(),
                     y: s.split_whitespace().nth(2).unwrap().parse::<f64>().unwrap(),
                     z: s.split_whitespace().nth(3).unwrap().parse::<f64>().unwrap(),
+                    w: 0.0
                 });
             }
 
@@ -146,13 +149,125 @@ impl Mesh {
 
 pub struct Mat4x4(pub [[f64; 4]; 4]);
 
-pub fn multiply_matric_vector(i: &Vec3d, o: &mut Vec3d, m: &Mat4x4){
-    o.x = i.x * m.0[0][0] + i.y * m.0[1][0] + i.z * m.0[2][0] + m.0[3][0];
-    o.y = i.x * m.0[0][1] + i.y * m.0[1][1] + i.z * m.0[2][1] + m.0[3][1];
-    o.z = i.x * m.0[0][2] + i.y * m.0[1][2] + i.z * m.0[2][2] + m.0[3][2];
-    let w: f64 = i.x * m.0[0][3] + i.y * m.0[1][3] + i.z * m.0[2][3] + m.0[3][3];
+pub fn multiply_matric_vector(i: Vec3d, m: &Mat4x4) -> Vec3d{
+    Vec3d{
+        x: i.x * m.0[0][0] + i.y * m.0[1][0] + i.z * m.0[2][0] + i.w * m.0[3][0],
+        y: i.x * m.0[0][1] + i.y * m.0[1][1] + i.z * m.0[2][1] + i.w * m.0[3][1],
+        z: i.x * m.0[0][2] + i.y * m.0[1][2] + i.z * m.0[2][2] + i.w * m.0[3][2],
+        w: i.x * m.0[0][3] + i.y * m.0[1][3] + i.z * m.0[2][3] + i.w * m.0[3][3]
+    }
+}
 
-    if w != 0.0 {
-        o.x /= w; o.y /= w; o.z /= w;
+pub fn matrix_make_identity() -> Mat4x4 {
+    let mut matrix = Mat4x4([[0.0;4];4]);
+    matrix.0[0][0] = 1.0;
+    matrix.0[1][1] = 1.0;
+    matrix.0[2][2] = 1.0;
+    matrix.0[3][3] = 1.0;
+    return matrix;
+}
+
+pub fn matrix_make_rotation_x(f_angle_rad: f64) -> Mat4x4 {
+    let mut matrix = Mat4x4([[0.0;4];4]);
+    matrix.0[0][0] = 1.0;
+    matrix.0[1][1] = f_angle_rad.cos();
+    matrix.0[1][2] = f_angle_rad.sin();
+    matrix.0[2][1] = -f_angle_rad.sin();
+    matrix.0[2][2] = f_angle_rad.cos();
+    matrix.0[3][3] = 1.0;
+    return matrix;
+}
+
+pub fn matrix_make_rotation_y(f_angle_rad: f64) -> Mat4x4 {
+    let mut matrix = Mat4x4([[0.0;4];4]);
+    matrix.0[0][0] = f_angle_rad.cos();
+    matrix.0[0][2] = f_angle_rad.sin();
+    matrix.0[2][0] = -f_angle_rad.sin();
+    matrix.0[1][1] = 1.0;
+    matrix.0[2][2] = f_angle_rad.cos();
+    matrix.0[3][3] = 1.0;
+    return matrix;
+}
+
+pub fn matrix_make_rotation_z(f_angle_rad: f64) -> Mat4x4 {
+    let mut matrix = Mat4x4([[0.0;4];4]);
+    matrix.0[0][0] = f_angle_rad.cos();
+    matrix.0[0][1] = f_angle_rad.sin();
+    matrix.0[1][0] = -f_angle_rad.sin();
+    matrix.0[1][1] = f_angle_rad.cos();
+    matrix.0[2][2] = 1.0;
+    matrix.0[3][3] = 1.0;
+    return matrix;
+}
+
+pub fn matrix_make_translation(x:f64,y:f64,z:f64) -> Mat4x4{
+    let mut matrix = Mat4x4([[0.0;4];4]);
+    matrix.0[0][0] = 1.0;
+    matrix.0[1][1] = 1.0;
+    matrix.0[2][2] = 1.0;
+    matrix.0[3][3] = 1.0;
+    matrix.0[3][0] = x;
+    matrix.0[3][1] = y;
+    matrix.0[3][2] = z;
+    return matrix;
+}
+
+pub fn matrix_make_projection(f_fov_degrees: f64, f_aspect_ratio: f64, f_near: f64, f_far: f64) -> Mat4x4 {
+    let f_fov_rad = 1.0 / (f_fov_degrees * 0.5 / 180.0 * PI).tan();
+    let mut matrix = Mat4x4([[0.0;4];4]);
+    matrix.0[0][0] = f_aspect_ratio * f_fov_rad;
+    matrix.0[1][1] = f_fov_rad;
+    matrix.0[2][2] = f_far / (f_far - f_near);
+    matrix.0[3][2] = (-f_far * f_near) / (f_far - f_near);
+    matrix.0[2][3] = 1.0;
+    matrix.0[3][3] = 0.0;
+    return matrix;
+}
+
+pub fn Matrix_MultiplyMatrix(m1: Mat4x4, m2: Mat4x4) -> Mat4x4 {
+    let mut matrix = Mat4x4([[0.0;4];4]);
+    for c in 0..4 {
+        for r in 0..4 {
+            matrix.0[r][c] = m1.0[r][0] * m2.0[0][c] + m1.0[r][1] * m2.0[1][c] + m1.0[r][2] * m2.0[2][c] + m1.0[r][3] * m2.0[3][c];
+        }
+    }
+    return matrix;
+}
+
+pub fn vector_add(v1: Vec3d, v2: Vec3d) -> Vec3d {
+    Vec3d{x: v1.x + v2.x,y: v1.y + v2.y ,z: v1.z + v2.z, w: 0.0 }
+}
+
+pub fn vector_sub(v1: Vec3d, v2: Vec3d) -> Vec3d {
+    Vec3d{x: v1.x - v2.x,y: v1.y - v2.y ,z: v1.z - v2.z, w: 0.0 }
+}
+
+pub fn vector_mul(v1: Vec3d, k: f64) -> Vec3d {
+    Vec3d{x: v1.x * k,y: v1.y * k ,z: v1.z * k, w: 0.0 }
+}
+
+pub fn vector_div(v1: Vec3d, k: f64) -> Vec3d {
+    Vec3d{x: v1.x / k,y: v1.y / k ,z: v1.z / k, w: 0.0 }
+}
+
+pub fn vector_dot(v1: &Vec3d, v2: &Vec3d) -> f64 {
+    (v1.x*v2.x+v1.y*v2.y+v1.z*v2.z)
+}
+
+pub fn vector_len(v: Vec3d) -> f64 {
+    (vector_dot(&v,&v)).sqrt()
+}
+
+pub fn vector_norm(v: Vec3d) -> Vec3d {
+    let l = vector_len(v);
+    Vec3d{x: v.x/l, y: v.y/l, z: v.z/l, w: 0.0 }
+}
+
+pub fn vector_cross(v1: Vec3d ,v2: Vec3d) -> Vec3d {
+    Vec3d{
+        x: v1.y * v2.z - v1.z * v2.y,
+        y: v1.z * v2.x - v1.x * v2.z,
+        z: v1.x * v2.y - v1.y * v2.x,
+        w: 0.0
     }
 }

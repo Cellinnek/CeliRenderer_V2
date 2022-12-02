@@ -12,8 +12,8 @@ use minifb::{Scale, Window, WindowOptions};
 use minifb::Key::{Escape};
 
 
-const WIDTH: usize = 512;
-const HEIGHT: usize = 512;
+const WIDTH: usize = 800;
+const HEIGHT: usize = 800;
 
 mod functions;
 use functions::*;
@@ -109,7 +109,7 @@ fn main() {
 
     let mut mesh_cube = Mesh { tris: vec![] };
 
-    mesh_cube.load_from_object_file("C:/Users/Cysie/CLionProjects/Renderer_V2/src/VideoShip.obj");
+    mesh_cube.load_from_object_file("C:/Users/Cysie/CLionProjects/Renderer_V2/src/monke.obj");
     /*mesh_cube.load_from_object_file("C:/Users/Cysie/CLionProjects/Renderer_V2/src/untitled.obj");*/
 
     let mut mat_rot_z: Mat4x4;
@@ -118,7 +118,8 @@ fn main() {
     let v_camera = Vec3d {
         x: 0.0,
         y: 0.0,
-        z: 0.0
+        z: 0.0,
+        w: 0.0
     };
 
     let mut buffer:Vec<u32>= vec![0; WIDTH * HEIGHT];
@@ -132,7 +133,7 @@ fn main() {
         },
     ).unwrap();
 
-    window.set_position(500, 175);
+    window.set_position(350, 20);
     /*window.limit_update_rate(Some(std::time::Duration::from_micros(16600)));*/
 
     let start = Instant::now();
@@ -176,26 +177,29 @@ fn main() {
             multiply_matric_vector(&tri_rotated_z.c, &mut tri_rotated_zx.c, &mat_rot_x);
 
             tri_translated = tri_rotated_zx;
-            tri_translated.a.z = tri_rotated_zx.a.z + 8.0;
-            tri_translated.b.z = tri_rotated_zx.b.z + 8.0;
-            tri_translated.c.z = tri_rotated_zx.c.z + 8.0;
+            tri_translated.a.z = tri_rotated_zx.a.z + 3.0;
+            tri_translated.b.z = tri_rotated_zx.b.z + 3.0;
+            tri_translated.c.z = tri_rotated_zx.c.z + 3.0;
 
             let line1 = Vec3d {
                 x: tri_translated.b.x - tri_translated.a.x,
                 y: tri_translated.b.y - tri_translated.a.y,
-                z: tri_translated.b.z - tri_translated.a.z
+                z: tri_translated.b.z - tri_translated.a.z,
+                w: 0.0
             };
 
             let line2 = Vec3d {
                 x: tri_translated.c.x - tri_translated.a.x,
                 y: tri_translated.c.y - tri_translated.a.y,
-                z: tri_translated.c.z - tri_translated.a.z
+                z: tri_translated.c.z - tri_translated.a.z,
+                w: 0.0
             };
 
             let mut normal = Vec3d {
                 x: line1.y * line2.z - line1.z * line2.y,
                 y: line1.z * line2.x - line1.x * line2.z,
-                z: line1.x * line2.y - line1.y * line2.x
+                z: line1.x * line2.y - line1.y * line2.x,
+                w: 0.0
             };
 
             let l = (normal.x*normal.x + normal.y*normal.y + normal.z*normal.z).sqrt();
@@ -204,16 +208,16 @@ fn main() {
             if (normal.x * (tri_translated.a.x - v_camera.x) +
                 normal.y * (tri_translated.a.y - v_camera.y) +
                 normal.z * (tri_translated.a.z - v_camera.z)) < 0.0 {
-                let mut light_direction = Vec3d { x: 0.0, y: 0.0, z: -1.0 };
+                let mut light_direction = Vec3d { x: 0.0, y: 0.0, z: -1.0, w: 0.0 };
                 let l = (light_direction.x*light_direction.x + light_direction.y*light_direction.y + light_direction.z*light_direction.z).sqrt();
                 light_direction.x /= l; light_direction.y /= l; light_direction.z /= l;
 
                 let dp = normal.x * light_direction.x + normal.y * light_direction.y + normal.z * light_direction.z;
                 tri_projected.col = (255.0*dp) as u32 * 0x10101;
 
-                multiply_matric_vector(&tri_translated.a, &mut tri_projected.a, &mat_proj);
-                multiply_matric_vector(&tri_translated.b, &mut tri_projected.b, &mat_proj);
-                multiply_matric_vector(&tri_translated.c, &mut tri_projected.c, &mat_proj);
+                multiply_matric_vector(tri_translated.a, &mat_proj);
+                multiply_matric_vector(tri_translated.b,  &mat_proj);
+                multiply_matric_vector(tri_translated.c, &mat_proj);
 
                 tri_projected.a.x += 1.0;
                 tri_projected.a.y += 1.0;
@@ -236,11 +240,12 @@ fn main() {
         vec_triangles_to_raster.sort_by(|x,y| (-(x.a.z+x.b.z+x.c.z)/3.0).partial_cmp(&(-(y.a.z+y.b.z+y.c.z)/3.0)).unwrap());
 
         for tri in &vec_triangles_to_raster{
-            draw_triangle_faces(&mut buffer,
+
+            draw_triangle_edges(&mut buffer,
                                 [tri.a.x as i32, tri.a.y as i32],
                                 [tri.b.x as i32, tri.b.y as i32],
                                 [tri.c.x as i32, tri.c.y as i32],
-                                tri.col);
+                                0x00ff00);
         }
 
         window.update_with_buffer(&buffer, WIDTH, HEIGHT).expect("Oops!");
