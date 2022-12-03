@@ -149,7 +149,7 @@ impl Mesh {
 
 pub struct Mat4x4(pub [[f64; 4]; 4]);
 
-pub fn multiply_matric_vector(i: Vec3d, m: &Mat4x4) -> Vec3d{
+pub fn matrix_multiply_vector(m: &Mat4x4, i: &Vec3d) -> Vec3d{
     Vec3d{
         x: i.x * m.0[0][0] + i.y * m.0[1][0] + i.z * m.0[2][0] + i.w * m.0[3][0],
         y: i.x * m.0[0][1] + i.y * m.0[1][1] + i.z * m.0[2][1] + i.w * m.0[3][1],
@@ -224,7 +224,7 @@ pub fn matrix_make_projection(f_fov_degrees: f64, f_aspect_ratio: f64, f_near: f
     return matrix;
 }
 
-pub fn Matrix_MultiplyMatrix(m1: Mat4x4, m2: Mat4x4) -> Mat4x4 {
+pub fn matrix_multiply_matrix(m1: &Mat4x4, m2: &Mat4x4) -> Mat4x4 {
     let mut matrix = Mat4x4([[0.0;4];4]);
     for c in 0..4 {
         for r in 0..4 {
@@ -234,40 +234,40 @@ pub fn Matrix_MultiplyMatrix(m1: Mat4x4, m2: Mat4x4) -> Mat4x4 {
     return matrix;
 }
 
-pub fn vector_add(v1: Vec3d, v2: Vec3d) -> Vec3d {
-    Vec3d{x: v1.x + v2.x,y: v1.y + v2.y ,z: v1.z + v2.z, w: 0.0 }
+pub fn vector_add(v1: &Vec3d, v2: &Vec3d) -> Vec3d {
+    Vec3d{x: v1.x + v2.x,y: v1.y + v2.y ,z: v1.z + v2.z, w: 1.0 }
 }
 
-pub fn vector_sub(v1: Vec3d, v2: Vec3d) -> Vec3d {
-    Vec3d{x: v1.x - v2.x,y: v1.y - v2.y ,z: v1.z - v2.z, w: 0.0 }
+pub fn vector_sub(v1: &Vec3d, v2: &Vec3d) -> Vec3d {
+    Vec3d{x: v1.x - v2.x,y: v1.y - v2.y ,z: v1.z - v2.z, w: 1.0 }
 }
 
-pub fn vector_mul(v1: Vec3d, k: f64) -> Vec3d {
-    Vec3d{x: v1.x * k,y: v1.y * k ,z: v1.z * k, w: 0.0 }
+pub fn vector_mul(v1: &Vec3d, k: &f64) -> Vec3d {
+    Vec3d{x: v1.x * k,y: v1.y * k ,z: v1.z * k, w: 1.0 }
 }
 
-pub fn vector_div(v1: Vec3d, k: f64) -> Vec3d {
-    Vec3d{x: v1.x / k,y: v1.y / k ,z: v1.z / k, w: 0.0 }
+pub fn vector_div(v1: &Vec3d, k: &f64) -> Vec3d {
+    Vec3d{x: v1.x / k,y: v1.y / k ,z: v1.z / k, w: 1.0 }
 }
 
 pub fn vector_dot(v1: &Vec3d, v2: &Vec3d) -> f64 {
     (v1.x*v2.x+v1.y*v2.y+v1.z*v2.z)
 }
 
-pub fn vector_len(v: Vec3d) -> f64 {
+pub fn vector_len(v: &Vec3d) -> f64 {
     (vector_dot(&v,&v)).sqrt()
 }
 
-pub fn vector_norm(v: Vec3d) -> Vec3d {
+pub fn vector_norm(v: &Vec3d) -> Vec3d {
     let l = vector_len(v);
-    Vec3d{x: v.x/l, y: v.y/l, z: v.z/l, w: 0.0 }
+    Vec3d{x: v.x/l, y: v.y/l, z: v.z/l, w: 1.0 }
 }
 
-pub fn vector_cross(v1: Vec3d ,v2: Vec3d) -> Vec3d {
+pub fn vector_cross(v1: &Vec3d ,v2: &Vec3d) -> Vec3d {
     Vec3d{
         x: v1.y * v2.z - v1.z * v2.y,
         y: v1.z * v2.x - v1.x * v2.z,
         z: v1.x * v2.y - v1.y * v2.x,
-        w: 0.0
+        w: 1.0
     }
 }
